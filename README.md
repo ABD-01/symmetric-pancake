@@ -12,6 +12,7 @@ make
 make debug
 make gdb
 ```
+<img width="1902" height="921" alt="image" src="https://github.com/user-attachments/assets/df12ac5f-d59d-48a0-bbe7-a8244a4d8ef8" />
 
 
 ## References
