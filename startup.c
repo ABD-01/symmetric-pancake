@@ -1,0 +1,52 @@
+#include <stdint.h>
+
+extern uint32_t _estack;
+extern void main(void);
+extern int puts(const char *str);
+
+void reset_handler(void)
+{
+	/* jump to C entry point */
+	main();
+}
+
+
+void nmi_handler(void)
+{
+    puts("NMI Handler");
+
+}
+
+void hardfault_handler(void)
+{
+    puts("Hardfault Handler");
+}
+
+void memmanage_handler(void)
+{
+    puts("MemManage Handler");
+}
+
+void busfault_handler(void)
+{
+    puts("Bus Fault Handler");
+}
+
+
+void usagefault_handler(void)
+{
+    puts("Usage Fault Handler");
+}
+
+const uint32_t isr_vectors[] __attribute__((section(".isr_vector"))) = {
+	(uint32_t)&_estack,
+	(uint32_t) reset_handler,	/* code entry point */
+    (uint32_t) nmi_handler,
+    (uint32_t) hardfault_handler,
+    (uint32_t) memmanage_handler,
+    (uint32_t) busfault_handler,
+    (uint32_t) usagefault_handler,
+    0,
+    0,
+    0
+};
