@@ -31,5 +31,9 @@ void main(void)
 
 	puts("Hello World!\n");
 
+    volatile uint32_t *bat_ptr = (uint32_t*)0xDEADBEEF;
+    *bat_ptr = 0x12345678;
+
+
 	while (1);
 }
