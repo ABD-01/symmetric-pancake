@@ -1,13 +1,32 @@
 #include <stdint.h>
 
 extern uint32_t _estack;
+extern uint32_t _sdata;
+extern uint32_t _edata;
+extern uint32_t _sbss;
+extern uint32_t _ebss;
+extern uint32_t _sdata_flash;
+
 extern void main(void);
 extern int puts(const char *str);
 
 void reset_handler(void)
 {
+    // SEE: [Anders Sundman: Low, Lower, Lowest level Programming](https://youtu.be/-uZRiTgqQRU)
+
+    // cody data section for flash to RAM
+    uint32_t *src = &_sdata_flash;
+    uint32_t *dest = &_sdata;
+    while (dest < &_edata) { *dest++ = *src++; }
+
+    // Zero out BSS
+    dest = &_sbss;
+    while (dest < &_ebss) { *dest++ = 0; }
+    
 	/* jump to C entry point */
 	main();
+
+    for (;;) {  }
 }
 
 
@@ -19,6 +38,7 @@ void nmi_handler(void)
 
 void hardfault_handler(void)
 {
+    // see: https://github.com/memfault/memfault-firmware-sdk/blob/master/components/panics/src/memfault_fault_handling_arm.c#L214
     puts("Hardfault Handler");
 }
 
