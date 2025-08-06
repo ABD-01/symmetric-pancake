@@ -10,63 +10,55 @@ extern uint32_t _sdata_flash;
 extern void main(void);
 extern int puts(const char *str);
 
-void reset_handler(void)
-{
-    // SEE: [Anders Sundman: Low, Lower, Lowest level Programming](https://youtu.be/-uZRiTgqQRU)
+void Reset_Handler(void) {
+  // SEE: [Anders Sundman: Low, Lower, Lowest level
+  // Programming](https://youtu.be/-uZRiTgqQRU)
 
-    // cody data section for flash to RAM
-    uint32_t *src = &_sdata_flash;
-    uint32_t *dest = &_sdata;
-    while (dest < &_edata) { *dest++ = *src++; }
+  // cody data section for flash to RAM
+  uint32_t *src = &_sdata_flash;
+  uint32_t *dest = &_sdata;
+  while (dest < &_edata) { *dest++ = *src++; }
 
-    // Zero out BSS
-    dest = &_sbss;
-    while (dest < &_ebss) { *dest++ = 0; }
-    
-	/* jump to C entry point */
-	main();
+  // Zero out BSS
+  dest = &_sbss;
+  while (dest < &_ebss) { *dest++ = 0; }
 
-    for (;;) {  }
+  /* jump to C entry point */
+  main();
+
+  for (;;) {
+  }
 }
 
+void NMI_Handler(void) { puts("NMI Handler"); }
 
-void nmi_handler(void)
-{
-    puts("NMI Handler");
-
+void HardFault_Handler(void) {
+  // see:
+  // https://github.com/memfault/memfault-firmware-sdk/blob/master/components/panics/src/memfault_fault_handling_arm.c#L214
+  puts("HardFault Handler");
 }
 
-void hardfault_handler(void)
-{
-    // see: https://github.com/memfault/memfault-firmware-sdk/blob/master/components/panics/src/memfault_fault_handling_arm.c#L214
-    puts("Hardfault Handler");
-}
+void MemManage_Handler(void) { puts("MemManage Handler"); }
 
-void memmanage_handler(void)
-{
-    puts("MemManage Handler");
-}
+void BusFault_Handler(void) { puts("BusFault Handler"); }
 
-void busfault_handler(void)
-{
-    puts("Bus Fault Handler");
-}
+void UsageFault_Handler(void) { puts("Usage Fault Handler"); }
 
-
-void usagefault_handler(void)
-{
-    puts("Usage Fault Handler");
-}
+void SVC_Handler(void) {}
+void DebugMon_Handler(void) {}
 
 const uint32_t isr_vectors[] __attribute__((section(".isr_vector"))) = {
-	(uint32_t)&_estack,
-	(uint32_t) reset_handler,	/* code entry point */
-    (uint32_t) nmi_handler,
-    (uint32_t) hardfault_handler,
-    (uint32_t) memmanage_handler,
-    (uint32_t) busfault_handler,
-    (uint32_t) usagefault_handler,
+    (uint32_t)&_estack,
+    (uint32_t)Reset_Handler, /* code entry point */
+    (uint32_t)NMI_Handler,
+    (uint32_t)HardFault_Handler,
+    (uint32_t)MemManage_Handler,
+    (uint32_t)BusFault_Handler,
+    (uint32_t)UsageFault_Handler,
     0,
     0,
-    0
-};
+    0,
+    0,
+    (uint32_t)SVC_Handler,
+    (uint32_t)DebugMon_Handler,
+    0};
