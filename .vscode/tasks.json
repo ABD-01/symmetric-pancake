@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "run-qemu-debug",
+            "type": "shell",
+            "command": "qemu-system-arm",
+            "args": [
+                "-machine",
+                "stm32vldiscovery",
+                "-nographic",
+                "-kernel",
+                "${workspaceFolder}/kernel.bin",
+                "-s",
+                "-S"
+            ],
+            "isBackground": true,
+            "problemMatcher": []
+        }
+    ]
+}
