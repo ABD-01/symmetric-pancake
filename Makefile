@@ -8,7 +8,8 @@ OBJCOPY	=	$(TOOLCHAIN_PREFIX)objcopy
 OBJDUMP	=	$(TOOLCHAIN_PREFIX)objdump
 
 LDFLAGS	=	-Wl,--print-memory-usage
-CFLAGS	=	-mcpu=cortex-m3 -mthumb -mfloat-abi=soft -nostartfiles
+CFLAGS	=	-mcpu=cortex-m3 -mthumb -mfloat-abi=soft
+#CFLAGS	+=	-nographic -nostdlib
 CFLAGS	+=	-O0
 CFLAGS	+=	-g3 -ggdb
 CFLAGS	+=	-Wall -Wextra -Wpedantic
@@ -16,12 +17,31 @@ CFLAGS	+=	--specs=nano.specs
 #CFLAGS	+=	-lc -lnosys
 CXFLAGS	=	$(CFLAGS)  -fno-rtti -fno-exceptions
 
+# ------ includes --------
+INCS	= -I. \
+		  -Icmsis \
+		  -Idevice
+
+# ------ defines --------
+DEFINES	= -DSTM32F100xB
+
+CFLAGS	+=	$(DEFINES) $(INCS)
+
 # ------ objects ---------
 OBJS	?=
-OBJS	+=	obj/main.o \
-			obj/startup.o \
-			obj/syscalls.o
+OBJS	+=	obj/device/startup_stm32f100xb.o \
+			obj/device/system_stm32f1xx.o \
+			obj/device/syscalls.o \
+			obj/device/sysmem.o \
+			obj/main.o \
+			obj/temp.o \
+			obj/hf_handler.o \
+			obj/app.o
 
+			#obj/startup.o \
+
+# Linker
+LD_SCRIPT	=	linker.ld
 
 
 .PHONY: all qemu clean
@@ -31,10 +51,15 @@ all: kernel.elf kernel.bin
 kernel.bin: kernel.elf
 	$(OBJCOPY) -Obinary $< $@
 
-kernel.elf: linker.ld $(OBJS)
+kernel.elf: $(LD_SCRIPT) $(OBJS)
 	# $(LD) $(LDFLAGS) -T $< -o $@ $(OBJS) -Map=kernel.map
 	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-T $< -o $@ $(OBJS) -Wl,-Map=kernel.map
 	$(OBJDUMP) -D -S $@ > kernel.list
+
+
+obj/%.o: %.s
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/%.o: %.S
 	mkdir -p $(@D)
