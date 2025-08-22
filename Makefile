@@ -20,7 +20,8 @@ CXFLAGS	=	$(CFLAGS)  -fno-rtti -fno-exceptions
 # ------ includes --------
 INCS	= -I. \
 		  -Icmsis \
-		  -Idevice
+		  -Idevice \
+		  -Ihardfault_diagnostics
 
 # ------ defines --------
 DEFINES	= -DSTM32F100xB
@@ -34,11 +35,9 @@ OBJS	+=	obj/device/startup_stm32f100xb.o \
 			obj/device/syscalls.o \
 			obj/device/sysmem.o \
 			obj/main.o \
-			obj/temp.o \
-			obj/hf_handler.o \
+			obj/temp_svc_handler.o \
+			obj/hardfault_diagnostics/hfd.o \
 			obj/app.o
-
-			#obj/startup.o \
 
 # Linker
 LD_SCRIPT	=	linker.ld
