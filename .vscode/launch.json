@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Attach gdb-multiarch to QEMU",
+            "servertype": "external",
+            "gdbPath": "C:/Program Files/gdb-multiarch-16.3/bin/gdb-multiarch.exe",
+            "executable": "${workspaceFolder}/kernel.elf",
+            "cwd": "${workspaceFolder}",
+            "gdbTarget": "localhost:1234",
+            "runToEntryPoint": "Reset_Handler",
+            "device": "cortex-m3",
+            "armToolchainPath": "C:/ST/STM32CubeIDE_1.16.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623/tools/bin",
+            "showDevDebugOutput": "none",
+        },
+    ]
+}
