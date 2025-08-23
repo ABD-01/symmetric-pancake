@@ -5,7 +5,6 @@
 *.o
 *.ko
 *.obj
-*.elf
 
 # Linker output
 *.ilk
@@ -34,13 +33,17 @@
 *.app
 *.i*86
 *.x86_64
+*.elf
 *.hex
+*.bin
 
 # Debug files
 *.dSYM/
 *.su
 *.idb
 *.pdb
+*.list
+*.lst
 
 # Kernel Module Compile Results
 *.mod*
