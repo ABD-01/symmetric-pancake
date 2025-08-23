@@ -25,13 +25,30 @@ MEMFAULT_SDK_ROOT := $(MEMFAULT_PORT_ROOT)/memfault-firmware-sdk
 MEMFAULT_COMPONENTS := core util panics metrics
 include $(MEMFAULT_SDK_ROOT)/makefiles/MemfaultWorker.mk
 
+# ------ esh --------
+ESH_ROOT = third_party/shell
+ESH_SRCS  = $(ESH_ROOT)/shell/shell.c  \
+			$(ESH_ROOT)/lib/a2i/a2i.c \
+			$(ESH_ROOT)/lib/memlog/memlog.c \
+			$(ESH_ROOT)/lib/printf/printf.c \
+			$(ESH_ROOT)/lib/utils/utils.c  
+ESH_INCLUDES = -I$(ESH_ROOT) \
+			-I$(ESH_ROOT)/lib/a2i \
+			-I$(ESH_ROOT)/lib/memlog \
+			-I$(ESH_ROOT)/lib/printf \
+			-I$(ESH_ROOT)/lib/regs \
+			-I$(ESH_ROOT)/lib/string \
+			-I$(ESH_ROOT)/shell
+
+
 # ------ includes --------
 INCS	= -I. \
 		  -Icmsis \
 		  -Idevice \
 		  -I$(MEMFAULT_COMPONENTS_INC_FOLDERS) \
   		  -I$(MEMFAULT_SDK_ROOT)/ports/include \
-  		  -I$(MEMFAULT_PORT_ROOT)
+  		  -I$(MEMFAULT_PORT_ROOT) \
+		  $(ESH_INCLUDES)
 
 # ------ defines --------
 DEFINES	= -DSTM32F100xB
@@ -50,7 +67,7 @@ SRCS	+=	device/startup_stm32f100xb.s \
 SRCS	+=	$(MEMFAULT_COMPONENTS_SRCS) \
   			$(MEMFAULT_PORT_ROOT)/memfault_platform_port.c \
 			${MEMFAULT_SDK_ROOT}/ports/panics/src/memfault_platform_ram_backed_coredump.c
-
+SRCS	+=  $(ESH_SRCS)
 
 
 

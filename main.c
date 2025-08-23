@@ -1,13 +1,12 @@
 #include <stdint.h>
-#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
-
-#include "app.h"
 
 #include "stm32f1xx.h"
 
+#include "app.h"
 #include "usart.h"
-
+#include "shell.h"
 #include "memfault/components.h"
 
 
@@ -41,10 +40,10 @@ int test_coredump_storage(int argc, char *argv[])
 }
 
 
+
 void main(void)
 {
-    uart_init();
-    setvbuf(stdin, NULL, _IONBF, 0);
+    initial_setup();
     printf("Booting...\r\n");
     memfault_platform_boot();
     memfault_data_export_dump_chunks();
@@ -66,27 +65,23 @@ void main(void)
 
     );
 
-    foo();
-
     __asm("push {r1-r12}\n");
 
     __asm("svc #69\n");
 
-    // volatile uint32_t *bat_ptr = (uint32_t*)0xDEADBEEF;
-    // *bat_ptr = 0x12345678;
+    prompt();
 
-    // while (1) {
-    //   if (_gets(RxBuf, 10) > 0) {
-    //     printf("Received: %s\r\n", RxBuf);
-    //   }
-    // }
-
-skip_hf:
-    while (1) {
-        if (fgets(RxBuf, sizeof(RxBuf), stdin)) {
-            // if (gets(RxBuf)) {
-            printf("Received: %s\r\n", RxBuf);
-        }
-    }
     return 0;
+}
+
+void initial_setup(void)
+{
+    platform_init();
+    // setvbuf(stdin, NULL, _IONBF, 0);
+}
+
+void platform_init() {
+  uart_init();
+  set_read_char(__io_getchar);
+  set_write_char(__io_putchar);
 }
