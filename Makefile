@@ -6,8 +6,9 @@ AS		=	$(TOOLCHAIN_PREFIX)as
 LD		=	$(TOOLCHAIN_PREFIX)ld
 OBJCOPY	=	$(TOOLCHAIN_PREFIX)objcopy
 OBJDUMP	=	$(TOOLCHAIN_PREFIX)objdump
+BINSIZE	=	$(TOOLCHAIN_PREFIX)size
 
-LDFLAGS	=	-Wl,--print-memory-usage
+LDFLAGS	=	-Wl,--print-memory-usage -Wl,--build-id=sha1
 CFLAGS	=	-mcpu=cortex-m3 -mthumb -mfloat-abi=soft
 #CFLAGS	+=	-nographic -nostdlib
 CFLAGS	+=	-O0
@@ -75,6 +76,7 @@ kernel.bin: kernel.elf
 	$(OBJCOPY) -Obinary $< $@
 
 kernel.elf: $(LD_SCRIPT) $(OBJS)
+	@$(BINSIZE) -B -d -t $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-T $< -o $@ $(OBJS) -Wl,-Map=kernel.map
 	$(OBJDUMP) -D -S $@ > kernel.list
 
@@ -111,5 +113,5 @@ gdb: kernel.elf
 	gdb-multiarch $< -ex 'target remote 10.0.2.2:1234'
 
 clean:
-	rm -rvf *.elf *.bin *.list obj/
+	rm -rvf *.elf *.bin *.list *.map obj/
 

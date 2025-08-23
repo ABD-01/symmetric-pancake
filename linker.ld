@@ -106,7 +106,14 @@ SECTIONS
       . = ALIGN(8);
     } >RAM
 
-     .noinit (NOLOAD): { KEEP(*(*.noinit.mflt*)) } >RAM
+    /* Memfault integration */
+    .noinit (NOLOAD): { KEEP(*(*.noinit.mflt*)) } >RAM
+
+    .note.gnu.build-id :
+    {
+        __start_gnu_build_id_start = .;
+        KEEP(*(.note.gnu.build-id))
+    } >FLASH
 
     .CoreDump (NOLOAD) : {
         _coredumpBuffer = .;
