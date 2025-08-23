@@ -115,9 +115,6 @@ MEMFAULT_WEAK void memfault_reboot_reason_get(sResetBootupInfo *info) {
   };
 }
 
-MEMFAULT_PUT_IN_SECTION(".noinit.mflt_reboot_tracking")
-static uint8_t s_reboot_tracking[MEMFAULT_REBOOT_TRACKING_REGION_SIZE];
-
 void memfault_platform_reboot_tracking_boot(void) {
   sResetBootupInfo reset_info = { 0 };
   memfault_reboot_reason_get(&reset_info);
@@ -143,12 +140,39 @@ MEMFAULT_PRINTF_LIKE_FUNC(2, 3) void memfault_platform_log(eMemfaultPlatformLogL
                                                            const char *fmt, ...) {
   //! !FIXME: Use this function to send logs to your application logging component, serial console,
   //! etc
-  printf("MLOG [%d] ", level);
   va_list args;
   va_start(args, fmt);
-  vprintf(fmt, args);
+
+  const char *level_name = "";
+  switch (level) {
+    case kMemfaultPlatformLogLevel_Debug:
+      level_name = "DEBG";
+      break;
+
+    case kMemfaultPlatformLogLevel_Info:
+      level_name = "INFO";
+      break;
+
+    case kMemfaultPlatformLogLevel_Warning:
+      level_name = "WARN";
+      break;
+
+    case kMemfaultPlatformLogLevel_Error:
+      level_name = "ERRO";
+      break;
+
+    default:
+      level_name = "????";
+      break;
+  }
+
+  char log_buf[128];
+  vsnprintf(log_buf, sizeof(log_buf), fmt, args);
+
+  printf("[%s] MFLT: %s\r\n", level_name, log_buf);
+  fflush(stdout);
+
   va_end(args);
-  printf("\r\n");
 }
 
 MEMFAULT_PRINTF_LIKE_FUNC(1, 2) void memfault_platform_log_raw(const char *fmt, ...) {
@@ -156,9 +180,14 @@ MEMFAULT_PRINTF_LIKE_FUNC(1, 2) void memfault_platform_log_raw(const char *fmt, 
   //! etc
   va_list args;
   va_start(args, fmt);
-  vprintf(fmt, args);
+
+  char log_buf[128];
+  vsnprintf(log_buf, sizeof(log_buf), fmt, args);
+
+  printf("%s\n", log_buf);
+  fflush(stdout);
+
   va_end(args);
-  printf("\r\n");
 }
 
 //! !FIXME: This function _must_ be called by your main() routine prior
