@@ -17,11 +17,20 @@ CFLAGS	+=	--specs=nano.specs
 #CFLAGS	+=	-lc -lnosys
 CXFLAGS	=	$(CFLAGS)  -fno-rtti -fno-exceptions
 
+# ------ memfault --------
+MEMFAULT_PORT_ROOT := third_party/memfault
+MEMFAULT_SDK_ROOT := $(MEMFAULT_PORT_ROOT)/memfault-firmware-sdk
+
+MEMFAULT_COMPONENTS := core util panics metrics
+include $(MEMFAULT_SDK_ROOT)/makefiles/MemfaultWorker.mk
+
 # ------ includes --------
 INCS	= -I. \
 		  -Icmsis \
 		  -Idevice \
-		  -Ihardfault_diagnostics
+		  -I$(MEMFAULT_COMPONENTS_INC_FOLDERS) \
+  		  -I$(MEMFAULT_SDK_ROOT)/ports/include \
+  		  -I$(MEMFAULT_PORT_ROOT)
 
 # ------ defines --------
 DEFINES	= -DSTM32F100xB
@@ -29,15 +38,30 @@ DEFINES	= -DSTM32F100xB
 CFLAGS	+=	$(DEFINES) $(INCS)
 
 # ------ objects ---------
-OBJS	?=
-OBJS	+=	obj/device/startup_stm32f100xb.o \
-			obj/device/system_stm32f1xx.o \
-			obj/device/syscalls.o \
-			obj/device/sysmem.o \
-			obj/main.o \
-			obj/temp_svc_handler.o \
-			obj/hardfault_diagnostics/hfd.o \
-			obj/app.o
+SRCS	?=
+SRCS	+=	device/startup_stm32f100xb.s \
+			device/system_stm32f1xx.c \
+			device/syscalls.c \
+			device/sysmem.c \
+			main.c \
+			temp_svc_handler.c \
+			app.cpp
+SRCS	+=	$(MEMFAULT_COMPONENTS_SRCS) \
+  			$(MEMFAULT_PORT_ROOT)/memfault_platform_port.c \
+			${MEMFAULT_SDK_ROOT}/ports/panics/src/memfault_platform_ram_backed_coredump.c
+
+
+
+
+SRCS_C    := $(filter %.c,$(SRCS))
+SRCS_CPP  := $(filter %.cpp,$(SRCS))
+SRCS_S    := $(filter %.s,$(SRCS))
+SRCS_CAPS := $(filter %.S,$(SRCS))
+
+OBJS  = $(patsubst %.c,obj/%.o,$(SRCS_C))
+OBJS += $(patsubst %.cpp,obj/%.o,$(SRCS_CPP))
+OBJS += $(patsubst %.s,obj/%.o,$(SRCS_S))
+OBJS += $(patsubst %.S,obj/%.o,$(SRCS_CAPS))
 
 # Linker
 LD_SCRIPT	=	linker.ld
@@ -51,7 +75,6 @@ kernel.bin: kernel.elf
 	$(OBJCOPY) -Obinary $< $@
 
 kernel.elf: $(LD_SCRIPT) $(OBJS)
-	# $(LD) $(LDFLAGS) -T $< -o $@ $(OBJS) -Map=kernel.map
 	$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-T $< -o $@ $(OBJS) -Wl,-Map=kernel.map
 	$(OBJDUMP) -D -S $@ > kernel.list
 

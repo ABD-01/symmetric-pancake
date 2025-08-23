@@ -3,8 +3,12 @@
 #include <stdlib.h>
 
 #include "app.h"
+
+#include "stm32f1xx.h"
+
 #include "reg.h"
 
+#include "memfault/components.h"
 
 
 
@@ -26,33 +30,29 @@ int __io_getchar(void)
     return c;
 }
 
-int _gets(char *buf, int maxlen)
+int test_coredump_storage(int argc, char *argv[])
 {
-    int i = 0;
-    while (i < maxlen - 1) {
-        while (!(*USARTx_SR & USART_FLAG_RXNE)) {} // wait for data
-        char c = *USARTx_DR & 0xFF;
 
-        // Echo it back
-        // while (!(*(USARTx_SR) & USART_FLAG_TXE));
-        // *(USARTx_DR) = c & 0xFF;
-        // Echo end
+    // Note: Coredump saving runs from an ISR prior to reboot so should
+    // be safe to call with interrupts disabled.
+    __disable_irq();
+    memfault_coredump_storage_debug_test_begin();
+    __enable_irq();
 
-        if (c == '\n' || c == '\r') break; // end input on newline
-
-        buf[i++] = c;
-    }
-    buf[i] = '\0';
-    return i;
+    memfault_coredump_storage_debug_test_finish();
+    return 0;
 }
+
 
 void main(void)
 {
     uart_init();
     setvbuf(stdin, NULL, _IONBF, 0);
     printf("Booting...\r\n");
+    memfault_platform_boot();
+    memfault_data_export_dump_chunks();
 
-    check_last_hardfault();
+    test_coredump_storage(0, NULL);
 
     __asm("mov    r1,  #0x11\n\t"
           "mov    r2,  #0x22\n\t"

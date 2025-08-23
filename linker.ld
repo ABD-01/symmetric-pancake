@@ -106,6 +106,8 @@ SECTIONS
       . = ALIGN(8);
     } >RAM
 
+     .noinit (NOLOAD): { KEEP(*(*.noinit.mflt*)) } >RAM
+
     .CoreDump (NOLOAD) : {
         _coredumpBuffer = .;
     } >DumpRAM
