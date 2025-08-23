@@ -6,13 +6,10 @@
 
 #include "stm32f1xx.h"
 
-#include "reg.h"
+#include "usart.h"
 
 #include "memfault/components.h"
 
-
-
-static void uart_init(void);
 
 char RxBuf[12] = "DEFAULT";
 
