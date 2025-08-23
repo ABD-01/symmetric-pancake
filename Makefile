@@ -16,14 +16,16 @@ CFLAGS	+=	-g3 -ggdb
 CFLAGS	+=	-Wall -Wextra -Wpedantic
 CFLAGS	+=	--specs=nano.specs
 #CFLAGS	+=	-lc -lnosys
-CXFLAGS	=	$(CFLAGS)  -fno-rtti -fno-exceptions
+CXFLAGS	=	-fno-rtti -fno-exceptions -fpermissive
 
 # ------ memfault --------
+ifeq ($(MFLT),1)
 MEMFAULT_PORT_ROOT := third_party/memfault
 MEMFAULT_SDK_ROOT := $(MEMFAULT_PORT_ROOT)/memfault-firmware-sdk
 
 MEMFAULT_COMPONENTS := core util panics metrics
 include $(MEMFAULT_SDK_ROOT)/makefiles/MemfaultWorker.mk
+endif
 
 # ------ esh --------
 ESH_ROOT = third_party/shell
@@ -32,6 +34,7 @@ ESH_SRCS  = $(ESH_ROOT)/shell/shell.c  \
 			$(ESH_ROOT)/lib/memlog/memlog.c \
 			$(ESH_ROOT)/lib/printf/printf.c \
 			$(ESH_ROOT)/lib/utils/utils.c  
+			# $(ESH_ROOT)/lib/string/string.c  
 ESH_INCLUDES = -I$(ESH_ROOT) \
 			-I$(ESH_ROOT)/lib/a2i \
 			-I$(ESH_ROOT)/lib/memlog \
@@ -45,13 +48,21 @@ ESH_INCLUDES = -I$(ESH_ROOT) \
 INCS	= -I. \
 		  -Icmsis \
 		  -Idevice \
-		  -I$(MEMFAULT_COMPONENTS_INC_FOLDERS) \
-  		  -I$(MEMFAULT_SDK_ROOT)/ports/include \
-  		  -I$(MEMFAULT_PORT_ROOT) \
 		  $(ESH_INCLUDES)
+
+ifeq ($(MFLT),1)
+INCS	+= -I$(MEMFAULT_PORT_ROOT) \
+		  -I$(MEMFAULT_COMPONENTS_INC_FOLDERS) \
+  		  -I$(MEMFAULT_SDK_ROOT)/ports/include
+else
+INCS	+= -Ihardfault_diagnostics
+endif
 
 # ------ defines --------
 DEFINES	= -DSTM32F100xB
+ifeq ($(MFLT),1)
+DEFINES += -DUSING_MEMFAULT
+endif
 
 CFLAGS	+=	$(DEFINES) $(INCS)
 
@@ -64,9 +75,13 @@ SRCS	+=	device/startup_stm32f100xb.s \
 			main.c \
 			temp_svc_handler.c \
 			app.cpp
+ifeq ($(MFLT),1)
 SRCS	+=	$(MEMFAULT_COMPONENTS_SRCS) \
   			$(MEMFAULT_PORT_ROOT)/memfault_platform_port.c \
 			${MEMFAULT_SDK_ROOT}/ports/panics/src/memfault_platform_ram_backed_coredump.c
+else
+SRCS	+= hardfault_diagnostics/hfd.c
+endif
 SRCS	+=  $(ESH_SRCS)
 
 
@@ -112,7 +127,7 @@ obj/%.o: %.c
 
 obj/%.o: %.cpp
 	mkdir -p $(@D)
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CFLAGS) $(CXFLAGS) -c $< -o $@
 
 debug: kernel.bin
 	@echo Please use \"make gdb\" in another terminal to attach gdb.

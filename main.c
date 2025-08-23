@@ -7,8 +7,9 @@
 #include "app.h"
 #include "usart.h"
 #include "shell.h"
+#if defined(USING_MEMFAULT)
 #include "memfault/components.h"
-
+#endif
 
 char RxBuf[12] = "DEFAULT";
 
@@ -26,6 +27,7 @@ int __io_getchar(void)
     return c;
 }
 
+#if defined(USING_MEMFAULT)
 int test_coredump_storage(int argc, char *argv[])
 {
 
@@ -38,6 +40,7 @@ int test_coredump_storage(int argc, char *argv[])
     memfault_coredump_storage_debug_test_finish();
     return 0;
 }
+#endif
 
 
 
@@ -45,10 +48,12 @@ void main(void)
 {
     initial_setup();
     printf("Booting...\r\n");
+#if defined(USING_MEMFAULT)
     memfault_platform_boot();
     memfault_data_export_dump_chunks();
 
     test_coredump_storage(0, NULL);
+#endif
 
     __asm("mov    r1,  #0x11\n\t"
           "mov    r2,  #0x22\n\t"
