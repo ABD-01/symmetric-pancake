@@ -1,8 +1,8 @@
 #include <stdint.h>
+#include "shell.h"
 
 #include "app.h"
 
-#include "stm32f1xx.h"
 
 static int g_xyz = 42;
 
@@ -29,3 +29,5 @@ int baz(int arg)
         return 9;
     }
 }
+
+ADD_CMD(foo, "Calls function foo->bar->baz which segfaults", foo);
