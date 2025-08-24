@@ -5,6 +5,16 @@
 extern "C" {
 #endif
 
+#ifdef __has_include
+    #if __has_include("hfd_user_confg.h")
+        #include "hfd_user_confg.h"
+    #endif
+#endif
+
+#ifndef HFD_LOG
+    #define HFD_LOG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+
 struct __attribute__((packed)) regs_t {
     uint32_t sp;
 
@@ -28,7 +38,7 @@ struct __attribute__((packed)) regs_t {
 };
 
 void check_last_hardfault(void);
-void HardFault_Handler_Main(struct regs_t*, uint32_t);
+void HardFault_Handler_Main(struct regs_t *, uint32_t);
 
 #ifdef __cplusplus
 } /* extern "C" */
