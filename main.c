@@ -1,5 +1,5 @@
 #include <stdint.h>
-// #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "stm32f1xx.h"
@@ -82,7 +82,7 @@ void main(void)
 void initial_setup(void)
 {
     platform_init();
-    // setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdin, NULL, _IONBF, 0);
 }
 
 void platform_init() {

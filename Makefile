@@ -32,8 +32,8 @@ ESH_ROOT = third_party/shell
 ESH_SRCS  = $(ESH_ROOT)/shell/shell.c  \
 			$(ESH_ROOT)/lib/a2i/a2i.c \
 			$(ESH_ROOT)/lib/memlog/memlog.c \
-			$(ESH_ROOT)/lib/printf/printf.c \
 			$(ESH_ROOT)/lib/utils/utils.c  
+			# $(ESH_ROOT)/lib/printf/printf.c
 			# $(ESH_ROOT)/lib/string/string.c  
 ESH_INCLUDES = -I$(ESH_ROOT) \
 			-I$(ESH_ROOT)/lib/a2i \
