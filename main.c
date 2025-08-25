@@ -2,20 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "stm32f1xx.h"
+
 #include "app.h"
-#include "reg.h"
-
-#define USART_FLAG_TXE  ((uint16_t)1 << 7) // Ref: rm0041 manual page637
-#define USART_FLAG_RXNE ((uint16_t)1 << 5) // Ref: rm0041 manual page637
-// See https://popovicu.com/posts/bare-metal-printf/ for UART driver
-// on baremetal platform
-
-#define USARTx     USART1
-#define USARTx_SR  USART1_SR
-#define USARTx_DR  USART1_DR
-#define USARTx_CR1 USART1_CR1
-
-static void uart_init(void);
+#include "usart.h"
+#include "shell.h"
+#if defined(USING_MEMFAULT)
+#include "memfault/components.h"
+#endif
 
 char RxBuf[12] = "DEFAULT";
 
@@ -33,33 +27,35 @@ int __io_getchar(void)
     return c;
 }
 
-int _gets(char *buf, int maxlen)
+#if defined(USING_MEMFAULT)
+int test_coredump_storage(int argc, char *argv[])
 {
-    int i = 0;
-    while (i < maxlen - 1) {
-        while (!(*USARTx_SR & USART_FLAG_RXNE)) {} // wait for data
-        char c = *USARTx_DR & 0xFF;
 
-        // Echo it back
-        // while (!(*(USARTx_SR) & USART_FLAG_TXE));
-        // *(USARTx_DR) = c & 0xFF;
-        // Echo end
+    // Note: Coredump saving runs from an ISR prior to reboot so should
+    // be safe to call with interrupts disabled.
+    __disable_irq();
+    memfault_coredump_storage_debug_test_begin();
+    __enable_irq();
 
-        if (c == '\n' || c == '\r') break; // end input on newline
-
-        buf[i++] = c;
-    }
-    buf[i] = '\0';
-    return i;
+    memfault_coredump_storage_debug_test_finish();
+    return 0;
 }
+#endif
+
+
 
 void main(void)
 {
-    uart_init();
-    setvbuf(stdin, NULL, _IONBF, 0);
+    initial_setup();
     printf("Booting...\r\n");
+#if defined(USING_MEMFAULT)
+    memfault_platform_boot();
+    memfault_data_export_dump_chunks();
 
+    test_coredump_storage(0, NULL);
+#else
     check_last_hardfault();
+#endif
 
     __asm("mov    r1,  #0x11\n\t"
           "mov    r2,  #0x22\n\t"
@@ -76,40 +72,38 @@ void main(void)
 
     );
 
-    foo();
-
     __asm("push {r1-r12}\n");
 
     __asm("svc #69\n");
 
-    // volatile uint32_t *bat_ptr = (uint32_t*)0xDEADBEEF;
-    // *bat_ptr = 0x12345678;
+    prompt();
 
-    // while (1) {
-    //   if (_gets(RxBuf, 10) > 0) {
-    //     printf("Received: %s\r\n", RxBuf);
-    //   }
-    // }
-
-skip_hf:
-    while (1) {
-        if (fgets(RxBuf, sizeof(RxBuf), stdin)) {
-            // if (gets(RxBuf)) {
-            printf("Received: %s\r\n", RxBuf);
-        }
-    }
     return 0;
 }
 
-static void uart_init(void)
+void initial_setup(void)
 {
-    *(RCC_APB2ENR) |= (uint32_t)(0x00000001 | 0x00000004);
-    *(RCC_APB1ENR) |= (uint32_t)(0x00020000);
+    platform_init();
+    setvbuf(stdin, NULL, _IONBF, 0);
+    SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+    // SCB->CCR |= SCB_CCR_UNALIGN_TRP_Msk;
+    __enable_irq();
 
-    /* USARTx Configuration */
-    *(GPIOA_CRL) = 0x00004B00;
-    *(GPIOA_CRH) = 0x44444444;
+    // Initialize systick 1ms
+    SysTick_Config(SystemCoreClock / 1000);
+    NVIC_SetPriority(SysTick_IRQn, 0x0);
+    NVIC_EnableIRQ(SysTick_IRQn);
+    
+}
 
-    *(USARTx_CR1) = 0x0000000C;
-    *(USARTx_CR1) |= 0x2000;
+void platform_init() {
+  uart_init();
+  set_read_char(__io_getchar);
+  set_write_char(__io_putchar);
+}
+
+void SysTick_Handler(void)
+{
+    static uint32_t ticks = 0;
+    ticks++;
 }

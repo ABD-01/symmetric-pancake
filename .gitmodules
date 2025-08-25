@@ -1,3 +1,10 @@
 [submodule "drivers"]
 	path = drivers
 	url = https://github.com/STMicroelectronics/stm32f1xx-hal-driver.git
+
+[submodule "third_party/memfault/memfault-firmware-sdk"]
+	path = third_party/memfault/memfault-firmware-sdk
+	url = https://github.com/memfault/memfault-firmware-sdk.git
+[submodule "third_party/shell"]
+	path = third_party/shell
+	url = https://github.com/google/esh.git

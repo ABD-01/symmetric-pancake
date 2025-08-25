@@ -34,6 +34,11 @@ SECTIONS
     .rodata :
     {
         . = ALIGN(4);
+        __CMD_TABLE_START__ = .;
+        KEEP(*(.cmd_list*))
+        __AUTO_TABLE_START__ = .;
+        KEEP(*(.auto_list*))
+        KEEP(*(.cmd_end*))
         *(.rodata)
         *(.rodata*)
         . = ALIGN(4);
@@ -105,6 +110,15 @@ SECTIONS
       . = . + _Min_Stack_Size;
       . = ALIGN(8);
     } >RAM
+
+    /* Memfault integration */
+    .noinit (NOLOAD): { KEEP(*(*.noinit.mflt*)) } >RAM
+
+    .note.gnu.build-id :
+    {
+        __start_gnu_build_id_start = .;
+        KEEP(*(.note.gnu.build-id))
+    } >FLASH
 
     .CoreDump (NOLOAD) : {
         _coredumpBuffer = .;
