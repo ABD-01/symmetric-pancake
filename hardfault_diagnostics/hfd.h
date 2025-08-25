@@ -12,7 +12,15 @@ extern "C" {
 #endif
 
 #ifndef HFD_LOG
-    #define HFD_LOG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define HFD_LOG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#endif
+
+#ifndef HFD_REASON_VERBOSE
+#define HFD_REASON_VERBOSE 1
+#endif
+
+#ifndef HFD_CHECK_RAM
+#define HFD_CHECK_RAM 0
 #endif
 
 struct __attribute__((packed)) regs_t {
@@ -38,7 +46,7 @@ struct __attribute__((packed)) regs_t {
 };
 
 void check_last_hardfault(void);
-void HardFault_Handler_Main(struct regs_t *, uint32_t);
+void HardFault_Handler_Main(struct regs_t const *, uint32_t);
 
 #ifdef __cplusplus
 } /* extern "C" */

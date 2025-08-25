@@ -53,6 +53,8 @@ void main(void)
     memfault_data_export_dump_chunks();
 
     test_coredump_storage(0, NULL);
+#else
+    check_last_hardfault();
 #endif
 
     __asm("mov    r1,  #0x11\n\t"
@@ -83,10 +85,25 @@ void initial_setup(void)
 {
     platform_init();
     setvbuf(stdin, NULL, _IONBF, 0);
+    SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+    // SCB->CCR |= SCB_CCR_UNALIGN_TRP_Msk;
+    __enable_irq();
+
+    // Initialize systick 1ms
+    SysTick_Config(SystemCoreClock / 1000);
+    NVIC_SetPriority(SysTick_IRQn, 0x0);
+    NVIC_EnableIRQ(SysTick_IRQn);
+    
 }
 
 void platform_init() {
   uart_init();
   set_read_char(__io_getchar);
   set_write_char(__io_putchar);
+}
+
+void SysTick_Handler(void)
+{
+    static uint32_t ticks = 0;
+    ticks++;
 }
